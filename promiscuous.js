@@ -1,7 +1,6 @@
 /** @license MIT - ©2013 Ruben Verborgh */
-(function () {
+(function (tick) {
   var func = "function";
-
   // Creates a deferred: an object with a promise and corresponding resolve/reject methods
   function createDeferred() {
     // The `handler` variable points to the function that will
@@ -12,8 +11,9 @@
     // We use only one function to save memory and complexity.
     var handler = function (onFulfilled, onRejected, value) {
           // Case 1) handle a .then(onFulfilled, onRejected) call
+          var d;
           if (onFulfilled !== handler) {
-            var d = createDeferred();
+            d = createDeferred();
             handler.c.push({ d: d, resolve: onFulfilled, reject: onRejected });
             return d.promise;
           }
@@ -22,14 +22,17 @@
           // (`onFulfilled` acts as a sentinel)
           // The actual function signature is
           // .re[ject|solve](sentinel, success, value)
-          var action = onRejected ? 'resolve' : 'reject';
+          var action = onRejected ? 'resolve' : 'reject',c,deferred,callback;
           for (var i = 0, l = handler.c.length; i < l; i++) {
-            var c = handler.c[i], deferred = c.d, callback = c[action];
-            if (typeof callback !== func)
+            c = handler.c[i];
+            deferred = c.d;
+            callback = c[action];
+            if (typeof callback !== func) {
               deferred[action](value);
-            else
+            } else {
               execute(callback, value, deferred);
-          };
+            }
+          }
           // Replace this handler with a simple resolved or rejected handler
           handler = createHandler(promise, value, onRejected);
         },
@@ -53,8 +56,9 @@
   function createHandler(promise, value, success) {
     return function (onFulfilled, onRejected) {
       var callback = success ? onFulfilled : onRejected, result;
-      if (typeof callback !== func)
+      if (typeof callback !== func) {
         return promise;
+      }
       execute(callback, value, result = createDeferred());
       return result.promise;
     };
@@ -63,21 +67,22 @@
   // Executes the callback with the specified value,
   // resolving or rejecting the deferred
   function execute(callback, value, deferred) {
-    process.nextTick(function () {
+    tick(function () {
+      var result;
       try {
-        var result = callback(value);
-        if (result && typeof result.then === func)
+        result = callback(value);
+        if (result && typeof result.then === func) {
           result.then(deferred.resolve, deferred.reject);
-        else
+        } else {
           deferred.resolve(result);
+        }
       }
       catch (error) {
         deferred.reject(error);
       }
     });
   }
-
-  module.exports = {
+  var exports = {
     // Returns a resolved promise
     resolve: function (value) {
       var promise = {};
@@ -93,4 +98,13 @@
     // Returns a deferred
     deferred: createDeferred
   };
-})();
+  if(typeof module === 'undefined'){
+    window.promiscuous=exports;
+  } else {
+    module.exports=exports;
+  }
+})(/*from github.com/JeanHuguesRobert/l8*/
+   typeof setImmediate !== "undefined" && setImmediate
+    || typeof process  !== "undefined" && process.nextTick
+    || setTimeout
+  );
