@@ -1,4 +1,4 @@
-/** @license MIT - ©2013 Ruben Verborgh */
+/** @license MIT - promiscuous library - ©2013 Ruben Verborgh */
 (function () {
   var func = "function";
 
