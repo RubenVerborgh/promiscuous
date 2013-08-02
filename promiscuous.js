@@ -45,7 +45,7 @@
       promise: promise,
       // Only resolve / reject when there is a deferreds queue
       resolve: function (value)  { handler.c && handler(handler, true, value); },
-      reject : function (reason) { handler.c && handler(handler, false, reason); },
+      reject : function (reason) { handler.c && handler(handler, false, reason); }
     };
   }
 
