@@ -1,6 +1,7 @@
 /** @license MIT - promiscuous library - ©2013 Ruben Verborgh */
-(function () {
-  var func = "function";
+(function (target) {
+  var func = "function",
+      next = typeof process !== 'undefined' && process.nextTick ? process.nextTick : setTimeout;
 
   // Creates a deferred: an object with a promise and corresponding resolve/reject methods
   function createDeferred() {
@@ -63,7 +64,7 @@
   // Executes the callback with the specified value,
   // resolving or rejecting the deferred
   function execute(callback, value, deferred) {
-    process.nextTick(function () {
+    next(function () {
       try {
         var result = callback(value);
         if (result && typeof result.then === func)
@@ -77,7 +78,7 @@
     });
   }
 
-  module.exports = {
+  target[0][target[1]] = {
     // Returns a resolved promise
     resolve: function (value) {
       var promise = {};
@@ -93,4 +94,4 @@
     // Returns a deferred
     deferred: createDeferred
   };
-})();
+})(typeof module !== 'undefined' ? [module, 'exports'] : [window, 'promiscuous']);
