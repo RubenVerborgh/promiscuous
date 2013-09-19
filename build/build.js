@@ -9,8 +9,4 @@ var path = "dist/";
 if(!fs.existsSync(path))
   fs.mkdirSync(path);
 
-fs.writeFileSync(path + "promiscuous-node.js",
-                 minified);
-fs.writeFileSync(path + "promiscuous-browser.js",
-                 minified.replace("module.exports", "window.promiscuous")
-                         .replace("process.nextTick", "setTimeout"));
+fs.writeFileSync(path + "promiscuous.min.js", minified);
