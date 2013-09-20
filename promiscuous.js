@@ -31,7 +31,8 @@
           execute(callback, onProgress, deferred);
       }
       // Replace this handler with a simple resolved or rejected handler
-      handler = createHandler(promise, onProgress, onRejected);
+      if (onRejected !== 'notify')
+        handler = createHandler(promise, onProgress, onRejected);
     },
     promise = {
       then: function (onFulfilled, onRejected, onProgress) {
