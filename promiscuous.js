@@ -6,33 +6,33 @@
   // Creates a deferred: an object with a promise and corresponding resolve/reject methods
   function createDeferred() {
     // The `handler` variable points to the function that will
-    // 1) handle a .then(onFulfilled, onRejected, onProgress) call
-    // 2) handle a .resolve, .reject or .notify call (if not fulfilled)
+    // 1) handle a .then(onFulfilled, onRejected) call
+    // 2) handle a .resolve or .reject call (if not fulfilled)
     // Before 2), `handler` holds a queue of callbacks.
     // After 2), `handler` is a simple .then handler.
     // We use only one function to save memory and complexity.
-    var handler = function (onFulfilled, onRejected, onProgress) {
-      // Case 1) handle a .then(onFulfilled, onRejected, onProgress) call
+    var handler = function (onFulfilled, onRejected, value) {
+      // Case 1) handle a .then(onFulfilled, onRejected) call
       if (onFulfilled !== handler) {
         var d = createDeferred();
-        handler.c.push({ d: d, resolve: onFulfilled, reject: onRejected, notify: onProgress });
+        handler.c.push({ d: d, resolve: onFulfilled, reject: onRejected, notify: value });
         return d.promise;
       }
 
       // Case 2) handle a .resolve or .reject call
       // (`onFulfilled` acts as a sentinel)
       // The actual function signature is
-      // .[reject|resolve|notify](sentinel, action, value)
+      // .re[ject|solve](sentinel, success, value)
+      var action = onRejected ? 'resolve' : 'reject';
       for (var i = 0, l = handler.c.length; i < l; i++) {
-        var c = handler.c[i], deferred = c.d, callback = c[onRejected];
+        var c = handler.c[i], deferred = c.d, callback = c[action];
         if (typeof callback !== func)
-          deferred[onRejected](onProgress);
+          deferred[action](value);
         else
-          execute(callback, onProgress, deferred);
+          execute(callback, value, deferred);
       }
       // Replace this handler with a simple resolved or rejected handler
-      if (onRejected !== 'notify')
-        handler = createHandler(promise, onProgress, onRejected);
+      handler = createHandler(promise, value, onRejected);
     },
     promise = {
       then: function (onFulfilled, onRejected, onProgress) {
@@ -44,17 +44,22 @@
 
     return {
       promise: promise,
-      // Only resolve/reject/notify when there is a deferred queue
-      resolve: function (value)  { handler.c && handler(handler, 'resolve', value); },
-      reject : function (reason) { handler.c && handler(handler, 'reject', reason); },
-      notify : function (progress) { handler.c && handler(handler, 'notify', progress); }
+      // Only resolve / reject when there is a deferreds queue
+      resolve: function (value)  { handler.c && handler(handler, true, value); },
+      reject : function (reason) { handler.c && handler(handler, false, reason); },
+      // Notify simply fires progress callbacks
+      notify : function (progress) {
+        for (var i = 0, l = handler.c.length; i < l; i++) {
+          handler.c[i].notify && handler.c[i].notify(progress);
+        }
+      }
     };
   }
 
   // Creates a fulfilled or rejected .then function
-  function createHandler(promise, value, action) {
-    return function (onFulfilled, onRejected, onProgress) {
-      var callback = action === 'resolve' ? onFulfilled : action === 'reject' ? onRejected : onProgress, result;
+  function createHandler(promise, value, success) {
+    return function (onFulfilled, onRejected) {
+      var callback = success ? onFulfilled : onRejected, result;
       if (typeof callback !== func)
         return promise;
       execute(callback, value, result = createDeferred());
