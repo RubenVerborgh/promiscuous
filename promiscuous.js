@@ -1,6 +1,7 @@
 /** @license MIT - promiscuous library - ©2013 Ruben Verborgh */
-(function () {
-  var func = "function";
+(function (target) {
+  var func = "function",
+      next = typeof process !== 'undefined' && process.nextTick ? process.nextTick : setTimeout;
 
   // Creates a deferred: an object with a promise and corresponding resolve/reject methods
   function createDeferred() {
@@ -11,33 +12,33 @@
     // After 2), `handler` is a simple .then handler.
     // We use only one function to save memory and complexity.
     var handler = function (onFulfilled, onRejected, value) {
-          // Case 1) handle a .then(onFulfilled, onRejected) call
-          if (onFulfilled !== handler) {
-            var d = createDeferred();
-            handler.c.push({ d: d, resolve: onFulfilled, reject: onRejected });
-            return d.promise;
-          }
+      // Case 1) handle a .then(onFulfilled, onRejected) call
+      if (onFulfilled !== handler) {
+        var d = createDeferred();
+        handler.c.push({ d: d, resolve: onFulfilled, reject: onRejected, notify: value });
+        return d.promise;
+      }
 
-          // Case 2) handle a .resolve or .reject call
-          // (`onFulfilled` acts as a sentinel)
-          // The actual function signature is
-          // .re[ject|solve](sentinel, success, value)
-          var action = onRejected ? 'resolve' : 'reject';
-          for (var i = 0, l = handler.c.length; i < l; i++) {
-            var c = handler.c[i], deferred = c.d, callback = c[action];
-            if (typeof callback !== func)
-              deferred[action](value);
-            else
-              execute(callback, value, deferred);
-          };
-          // Replace this handler with a simple resolved or rejected handler
-          handler = createHandler(promise, value, onRejected);
-        },
-        promise = {
-          then: function (onFulfilled, onRejected) {
-            return handler(onFulfilled, onRejected);
-          }
-        };
+      // Case 2) handle a .resolve or .reject call
+      // (`onFulfilled` acts as a sentinel)
+      // The actual function signature is
+      // .re[ject|solve](sentinel, success, value)
+      var action = onRejected ? 'resolve' : 'reject';
+      for (var i = 0, l = handler.c.length; i < l; i++) {
+        var c = handler.c[i], deferred = c.d, callback = c[action];
+        if (typeof callback !== func)
+          deferred[action](value);
+        else
+          execute(callback, value, deferred);
+      }
+      // Replace this handler with a simple resolved or rejected handler
+      handler = createHandler(promise, value, onRejected);
+    },
+    promise = {
+      then: function (onFulfilled, onRejected, onProgress) {
+        return handler(onFulfilled, onRejected, onProgress);
+      }
+    };
     // The queue of deferreds
     handler.c = [];
 
@@ -45,7 +46,17 @@
       promise: promise,
       // Only resolve / reject when there is a deferreds queue
       resolve: function (value)  { handler.c && handler(handler, true, value); },
-      reject : function (reason) { handler.c && handler(handler, false, reason); }
+      reject : function (reason) { handler.c && handler(handler, false, reason); },
+      // Notify simply fires progress callbacks
+      notify : function (progress) {
+        if (!handler.c) return;
+        var callbacks = handler.c;
+        next(function () {
+          for (var i = 0, l = callbacks.length; i < l; i++) {
+            callbacks[i].notify && callbacks[i].notify(progress);
+          }
+        });
+      }
     };
   }
 
@@ -63,7 +74,7 @@
   // Executes the callback with the specified value,
   // resolving or rejecting the deferred
   function execute(callback, value, deferred) {
-    process.nextTick(function () {
+    next(function () {
       try {
         var result = callback(value);
         if (result && typeof result.then === func)
@@ -77,7 +88,7 @@
     });
   }
 
-  module.exports = {
+  target[0][target[1]] = {
     // Returns a resolved promise
     resolve: function (value) {
       var promise = {};
@@ -93,4 +104,4 @@
     // Returns a deferred
     deferred: createDeferred
   };
-})();
+})(typeof module !== 'undefined' ? [module, 'exports'] : [window, 'promiscuous']);

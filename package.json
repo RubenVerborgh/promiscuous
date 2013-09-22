@@ -13,10 +13,12 @@
   },
   "main": "promiscuous.js",
   "scripts": {
-    "test": "promises-aplus-tests test/adapter"
+    "test": "promises-aplus-tests test/adapter && mocha test/test-*.js -R spec"
   },
   "devDependencies": {
     "promises-aplus-tests": "*",
+    "mocha": "*",
+    "chai": "*",
     "uglify-js": "2.2.x"
   }
 }
