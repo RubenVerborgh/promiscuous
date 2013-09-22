@@ -98,27 +98,6 @@
       return promise;
     },
     // Returns a deferred
-    deferred: createDeferred,
-    // Turns an array of promises into a promise for an array
-    all: function (promises) {
-      var deferred = createDeferred(), results = [], isRejected;
-      function reject(err) {
-        if (isRejected) return; // already rejected
-        isRejected = true;
-        deferred.reject(err);
-      }
-      function resolveOne(result) {
-        if (isRejected) return; // already rejected
-        results.push(result);
-        if (results.length === promises.length) {
-          // resolve only once all results are in
-          deferred.resolve(results);
-        }
-      }
-      for (var i = 0; i < promises.length; i++) {
-        promises[i].then(resolveOne, reject, deferred.notify);
-      }
-      return deferred.promise;
-    }
+    deferred: createDeferred
   };
 })(typeof module !== 'undefined' ? [module, 'exports'] : [window, 'promiscuous']);
