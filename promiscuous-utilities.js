@@ -14,4 +14,4 @@
     }
     return deferred.promise;
   };
-})(typeof require !== 'undefined' ? require('promiscuous') : window.promiscuous);
+})(typeof require !== 'undefined' ? require('./promiscuous') : window.promiscuous);

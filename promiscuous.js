@@ -49,9 +49,13 @@
       reject : function (reason) { handler.c && handler(handler, false, reason); },
       // Notify simply fires progress callbacks
       notify : function (progress) {
-        for (var i = 0, l = handler.c.length; i < l; i++) {
-          handler.c[i].notify && handler.c[i].notify(progress);
-        }
+        if (!handler.c) return;
+        var callbacks = handler.c;
+        next(function () {
+          for (var i = 0, l = callbacks.length; i < l; i++) {
+            callbacks[i].notify && callbacks[i].notify(progress);
+          }
+        });
       }
     };
   }
