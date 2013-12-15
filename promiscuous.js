@@ -22,14 +22,20 @@
           // (`onFulfilled` acts as a sentinel)
           // The actual function signature is
           // .re[ject|solve](sentinel, success, value)
-          var action = onRejected ? 'resolve' : 'reject';
+          var action = onRejected ? 'resolve' : 'reject',
+              then = value && value.then;
           for (var i = 0, l = handler.c.length; i < l; i++) {
             var c = handler.c[i], deferred = c.d, callback = c[action];
-            if (typeof callback !== func)
+            // If the resolved value is a promise, take over its state
+            if (then)
+              then.call(value, c.resolve, c.reject);
+            // If not a promise, but no callback, just fulfill the promise
+            else if (typeof callback !== func)
               deferred[action](value);
+            // Otherwise, fulfill the promise with the result of the callback
             else
               execute(callback, value, deferred);
-          };
+          }
           // Replace this handler with a simple resolved or rejected handler
           handler = createHandler(promise, value, onRejected);
         },
