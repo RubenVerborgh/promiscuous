@@ -65,11 +65,16 @@
   function execute(callback, value, deferred) {
     setImmediate(function () {
       try {
+        // Return the result if it's not a promise
         var result = callback(value);
-        if (result && typeof result.then === func)
-          result.then(deferred.resolve, deferred.reject);
-        else
+        if (!result || typeof result.then !== func)
           deferred.resolve(result);
+        // If it's a promise, make sure it's not circular
+        else if (result === deferred.promise)
+          deferred.reject(new TypeError());
+        // Otherwise, execute the deferred with the promises' result
+        else
+          result.then(deferred.resolve, deferred.reject);
       }
       catch (error) {
         deferred.reject(error);
