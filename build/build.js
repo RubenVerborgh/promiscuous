@@ -13,4 +13,4 @@ fs.writeFileSync(path + "promiscuous-node.js",
                  minified);
 fs.writeFileSync(path + "promiscuous-browser.js",
                  minified.replace("module.exports", "window.promiscuous")
-                         .replace("process.nextTick", "setTimeout"));
+                         .replace("setImmediate", "setTimeout"));

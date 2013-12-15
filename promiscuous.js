@@ -63,7 +63,7 @@
   // Executes the callback with the specified value,
   // resolving or rejecting the deferred
   function execute(callback, value, deferred) {
-    process.nextTick(function () {
+    setImmediate(function () {
       try {
         var result = callback(value);
         if (result && typeof result.then === func)
