@@ -66,15 +66,16 @@
     setImmediate(function () {
       try {
         // Return the result if it's not a promise
-        var result = callback(value);
-        if (!result || typeof result.then !== func)
+        var result = callback(value),
+            then = result && result.then;
+        if (!then)
           deferred.resolve(result);
         // If it's a promise, make sure it's not circular
         else if (result === deferred.promise)
           deferred.reject(new TypeError());
-        // Otherwise, execute the deferred with the promises' result
+        // Take over the promise's state
         else
-          result.then(deferred.resolve, deferred.reject);
+          then.call(result, deferred.resolve, deferred.reject);
       }
       catch (error) {
         deferred.reject(error);
