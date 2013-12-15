@@ -30,7 +30,7 @@
             catch (reason) { onRejected = false; value = reason; }
           }
           // If the value is a promise, take over its state
-          if (then) {
+          if (typeof then === func) {
             try {
               then.call(this, function (value) {
                 then && (then = null, handler(handler, true, value));
@@ -94,7 +94,7 @@
         // Return the result if it's not a promise
         var result = callback(value),
             then = result && result.then;
-        if (!then)
+        if (typeof then !== func)
           deferred.resolve(result);
         // If it's a promise, make sure it's not circular
         else if (result === deferred.promise)
