@@ -1,6 +1,6 @@
 /** @license MIT - promiscuous library - ©2013 Ruben Verborgh */
 (function promiscuous() {
-  var func = "function";
+  var func = "function", obj = "object";
 
   // Creates a deferred: an object with a promise and corresponding resolve/reject methods
   function createDeferred() {
@@ -25,7 +25,7 @@
 
           // Check if the value is a promise and try to obtain its `then` method
           var then;
-          if (value) {
+          if (value !== null && (typeof value === obj || typeof value === func)) {
             try { then = value.then; }
             catch (reason) { onRejected = false; value = reason; }
           }
@@ -95,7 +95,7 @@
       try {
         // Return the result if it's not a promise
         var result = callback(value),
-            then = result && result.then;
+            then = (result !== null && (typeof result === obj || typeof result === func)) && result.then;
         if (typeof then !== func)
           deferred.resolve(result);
         // If it's a promise, make sure it's not circular
