@@ -1,5 +1,5 @@
 /** @license MIT - promiscuous library - ©2013 Ruben Verborgh */
-(function () {
+(function promiscuous() {
   var func = "function";
 
   // Creates a deferred: an object with a promise and corresponding resolve/reject methods
@@ -10,11 +10,11 @@
     // Before 2), `handler` holds a queue of callbacks.
     // After 2), `handler` is a simple .then handler.
     // We use only one function to save memory and complexity.
-    var handler = function (onFulfilled, onRejected, value) {
+    var handler = function handlerFunction(onFulfilled, onRejected, value) {
           // Case 1) handle a .then(onFulfilled, onRejected) call
-          if (onFulfilled !== handler) {
+          if (onFulfilled !== promiscuous) {
             var d = createDeferred();
-            handler.c.push({ d: d, resolve: onFulfilled, reject: onRejected });
+            handlerFunction.c.push({ d: d, resolve: onFulfilled, reject: onRejected });
             return d.promise;
           }
 
@@ -31,23 +31,25 @@
           }
           // If the value is a promise, take over its state
           if (typeof then === func) {
+            // Make a local copy of the _current_ handler
+            onFulfilled = handler;
             try {
               then.call(this, function (value) {
-                then && (then = null, handler(handler, true, value));
+                then && (then = null, onFulfilled(promiscuous, true, value));
               },
               function (reason) {
-                then && (then = null, handler(handler, false, reason));
+                then && (then = null, onFulfilled(promiscuous, false, reason));
               });
             }
             catch (reason) {
-              then && (then = null, handler(handler, false, reason));
+              then && (then = null, onFulfilled(promiscuous, false, reason));
             }
           }
           // The value is not a promise; handle resolve/reject
           else {
-            var action = onRejected ? 'resolve' : 'reject';
-            for (var i = 0, l = handler.c.length; i < l; i++) {
-              var c = handler.c[i], deferred = c.d, callback = c[action];
+            var action = onRejected ? 'resolve' : 'reject', queue = handlerFunction.c;
+            for (var i = 0, l = queue.length; i < l; i++) {
+              var c = queue[i], deferred = c.d, callback = c[action];
               // If no callback, just fulfill the promise
               if (typeof callback !== func)
                 deferred[action](value);
@@ -70,8 +72,8 @@
     return {
       promise: promise,
       // Only resolve / reject when there is a deferreds queue
-      resolve: function (value)  { handler.c && handler(handler, true, value); },
-      reject : function (reason) { handler.c && handler(handler, false, reason); }
+      resolve: function (value)  { handler.c && handler(promiscuous, true, value); },
+      reject : function (reason) { handler.c && handler(promiscuous, false, reason); }
     };
   }
 
