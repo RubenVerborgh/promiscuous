@@ -22,22 +22,42 @@
           // (`onFulfilled` acts as a sentinel)
           // The actual function signature is
           // .re[ject|solve](sentinel, success, value)
-          var action = onRejected ? 'resolve' : 'reject',
-              then = value && value.then;
-          for (var i = 0, l = handler.c.length; i < l; i++) {
-            var c = handler.c[i], deferred = c.d, callback = c[action];
-            // If the resolved value is a promise, take over its state
-            if (then)
-              then.call(value, c.resolve, c.reject);
-            // If not a promise, but no callback, just fulfill the promise
-            else if (typeof callback !== func)
-              deferred[action](value);
-            // Otherwise, fulfill the promise with the result of the callback
-            else
-              execute(callback, value, deferred);
+
+          // Check if the value is a promise and try to obtain its `then` method
+          var then;
+          if (value) {
+            try { then = value.then; }
+            catch (reason) { onRejected = false; value = reason; }
           }
-          // Replace this handler with a simple resolved or rejected handler
-          handler = createHandler(promise, value, onRejected);
+          // If the value is a promise, take over its state
+          if (then) {
+            try {
+              then.call(this, function (value) {
+                then && (then = null, handler(handler, true, value));
+              },
+              function (reason) {
+                then && (then = null, handler(handler, false, reason));
+              });
+            }
+            catch (reason) {
+              then && (then = null, handler(handler, false, reason));
+            }
+          }
+          // The value is not a promise; handle resolve/reject
+          else {
+            var action = onRejected ? 'resolve' : 'reject';
+            for (var i = 0, l = handler.c.length; i < l; i++) {
+              var c = handler.c[i], deferred = c.d, callback = c[action];
+              // If no callback, just fulfill the promise
+              if (typeof callback !== func)
+                deferred[action](value);
+              // Otherwise, fulfill the promise with the result of the callback
+              else
+                execute(callback, value, deferred);
+            }
+            // Replace this handler with a simple resolved or rejected handler
+            handler = createHandler(promise, value, onRejected);
+          }
         },
         promise = {
           then: function (onFulfilled, onRejected) {
