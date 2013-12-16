@@ -26,7 +26,7 @@ Include [promiscuous](https://raw.github.com/RubenVerborgh/promiscuous/dist/prom
 <script src="promicuous-browser.js"></script>
 ```
 
-This version (and a minified one) can be build with:
+This version (and a minified one) can be built with:
 ```bash
 $ build/build.js
 ```
