@@ -1,0 +1,11 @@
+{
+  "node": true,     // Allow use of node.js globals.
+  "expr": true,     // Allow expressions where statements are allowed.
+  "boss": true,     // Allow assignments where expressions are allowed.
+  "-W082": true,    // Allow functions to be defined within blocks.
+  "undef": true,    // Don't use undefined variables.
+  "unused": true,   // Warn about unused variables.
+  "white": true,    // Enable strict whitespace checking.
+  "indent": 2,      // The code uses an indentation width of 2 spaces.
+  "trailing": true  // Do not leave trailing whitespace.
+}

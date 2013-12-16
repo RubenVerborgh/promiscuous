@@ -12,5 +12,5 @@ if(!fs.existsSync(path))
 fs.writeFileSync(path + "promiscuous-node.js",
                  minified);
 fs.writeFileSync(path + "promiscuous-browser.js",
-                 minified.replace("module.exports", "window.promiscuous")
+                 minified.replace("module.exports", "promiscuous")
                          .replace("setImmediate", "setTimeout"));
