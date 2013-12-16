@@ -12,9 +12,9 @@
     // Before 2), `handler` holds a queue of callbacks.
     // After 2), `handler` is a simple .then handler.
     // We use only one function to save memory and complexity.
-    handler = function handlerFunction(onFulfilled, onRejected, value, queue, then, i, head) {
+    handler = function pendingHandler(onFulfilled, onRejected, value, queue, then, i, head) {
       // Case 1) handle a .then(onFulfilled, onRejected) call
-      queue = handlerFunction.q;
+      queue = pendingHandler.q;
       if (onFulfilled != promiscuous) {
         queue.push({ d: value = createDeferred(), 1: onFulfilled, 0: onRejected });
         return value[Promise];
@@ -32,10 +32,10 @@
       }
       // If the value is a promise, take over its state
       if (is(func, then)) {
-        function valueHandler(handler, resolved) {
-          return function (value) { then && (then = 0, handler(promiscuous, resolved, value)); };
+        function valueHandler(resolved) {
+          return function (value) { then && (then = 0, pendingHandler(promiscuous, resolved, value)); };
         }
-        try { then.call(value, valueHandler(handler, 1), onRejected = valueHandler(handler, 0)); }
+        try { then.call(value, valueHandler(1), onRejected = valueHandler(0)); }
         catch (reason) { onRejected(reason); }
       }
       // The value is not a promise; handle resolve/reject
