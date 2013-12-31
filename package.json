@@ -1,7 +1,7 @@
 {
   "name": "promiscuous",
   "version": "0.4.0",
-  "description": "A minimal and fast promise/deferred implementation",
+  "description": "A minimal and fast promise implementation",
   "author": "Ruben Verborgh <ruben.verborgh@gmail.com>",
   "license": "MIT",
   "repository": {

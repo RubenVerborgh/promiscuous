@@ -6,7 +6,7 @@
 
 promiscuous is the smallest implementation of the [Promises/A+ spec](http://promises-aplus.github.com/promises-spec/).
 
-It is promise/deferred library in JavaScript, **small** (< 1kb [minified](https://raw.github.com/RubenVerborgh/promiscuous/dist/promiscuous-node.js) / < 0.6kb gzipped) and **fast**.
+It is promise library in JavaScript, **small** (< 1kb [minified](https://raw.github.com/RubenVerborgh/promiscuous/dist/promiscuous-node.js) / < 0.6kb gzipped) and **fast**.
 
 ## Installation and usage
 ### Node
@@ -17,7 +17,7 @@ $ npm install promiscuous
 
 Then, include promiscuous in your code file.
 ```javascript
-var promiscuous = require('promiscuous');
+var Promise = require('promiscuous');
 ```
 
 ### Browsers
@@ -34,30 +34,32 @@ $ build/build.js
 ## API
 ### Create a resolved promise
 ```javascript
-var one = promiscuous.resolve("one");
-one.then(console.log);
+var one = Promise.resolve("one");
+one.then(function (value) { console.log(value); });
 /* one */
 ```
 
 ### Create a rejected promise
 ```javascript
-var none = promiscuous.reject("error");
-none.then(console.log, console.error);
-/* error */
+var none = Promise.reject(new Error("Could not keep promise."));
+none.then(null, function (error) { console.error(error.message); });
+/* "Could not keep promise." */
 ```
 
 ### Write a function that returns a promise
 ```javascript
-function promiseSomething(something) {
-  var defer = promiscuous.deferred();
-  setTimeout(function () {
-    if (something)
-      defer.resolve(something);
-    else
-      defer.reject("nothing");
-  }, 1000);
-  return defer.promise;
+function promiseSomethingInASecond(something) {
+  return new Promise(function (resolve, reject) {
+    setTimeout(function () {
+      if (something)
+        resolve(something);
+      else
+        reject(new Error("nothing"));
+    }, 1000);
+  });
 }
-promiseSomething("something").then(console.log, console.error);
+promiseSomethingInASecond("something").then(
+  function (value) { console.log(value); },
+  function (error) { console.error(error.message); });
 /* something */
 ```
