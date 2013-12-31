@@ -1,6 +1,13 @@
-var promiscuous = require('../promiscuous');
+var Promise = require('../promiscuous');
 module.exports = {
-  resolved: promiscuous.resolve,
-  rejected: promiscuous.reject,
-  deferred: promiscuous.deferred,
+  resolved: Promise.resolve,
+  rejected: Promise.reject,
+  deferred: function () {
+    var deferred = {};
+    deferred.promise = new Promise(function (resolve, reject) {
+      deferred.resolve = resolve;
+      deferred.reject = reject;
+    });
+    return deferred;
+  },
 };

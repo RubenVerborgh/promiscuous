@@ -1,108 +1,107 @@
 /**@license MIT-promiscuous library-©2013 Ruben Verborgh*/
-(function (func, obj, Then, Promise, Resolve, Reject, promiscuous) {
+(function (func, obj) {
   // Type checking utility function
   function is(type, item) { return (typeof item)[0] == type; }
 
-  // Creates a deferred: an object with a promise and corresponding resolve/reject methods.
-  // Arguments are ignored.
-  function createDeferred(handler, deferred) {
+  // Creates a promise, calling callback(resolve, reject), ignoring other parameters.
+  function Promise(callback, handler) {
     // The `handler` variable points to the function that will
-    // 1) handle a .then(onResolved, onRejected) call
-    // 2) handle a .resolve or .reject call (if not resolved)
+    // 1) handle a .then(resolved, rejected) call
+    // 2) handle a resolve or reject call (if the first argument === `is`)
     // Before 2), `handler` holds a queue of callbacks.
     // After 2), `handler` is a finalized .then handler.
-    // We use only one function to save memory and complexity.
-    handler = function pendingHandler(onResolved, onRejected, value, queue, then, i, head) {
-      // Case 1) handle a .then(onResolved, onRejected) call
+    handler = function pendingHandler(resolved, rejected, value, queue, then, i) {
       queue = pendingHandler.q;
-      if (onResolved != promiscuous) {
-        queue.push({ d: value = createDeferred(), 1: onResolved, 0: onRejected });
-        return value[Promise];
+
+      // Case 1) handle a .then(resolved, rejected) call
+      if (resolved != is) {
+        return Promise(function (resolve, reject) {
+          queue.push({ p: this, r: resolve, j: reject, 1: resolved, 0: rejected });
+        });
       }
 
-      // Case 2) handle a .resolve or .reject call
-      // (`onResolved` acts as a sentinel)
+      // Case 2) handle a resolve or reject call
+      // (`resolved` === `is` acts as a sentinel)
       // The actual function signature is
-      // .re[ject|solve](sentinel, success, value)
+      // .re[ject|solve](<is>, success, value)
 
       // Check if the value is a promise and try to obtain its `then` method
       if (value && (is(func, value) | is(obj, value))) {
-        try { then = value[Then]; }
-        catch (reason) { onRejected = 0; value = reason; }
+        try { then = value.then; }
+        catch (reason) { rejected = 0; value = reason; }
       }
       // If the value is a promise, take over its state
       if (is(func, then)) {
         function valueHandler(resolved) {
-          return function (value) { then && (then = 0, pendingHandler(promiscuous, resolved, value)); };
+          return function (value) { then && (then = 0, pendingHandler(is, resolved, value)); };
         }
-        try { then.call(value, valueHandler(1), onRejected = valueHandler(0)); }
-        catch (reason) { onRejected(reason); }
+        try { then.call(value, valueHandler(1), rejected = valueHandler(0)); }
+        catch (reason) { rejected(reason); }
       }
       // The value is not a promise; handle resolve/reject
       else {
         i = 0;
         while (i < queue.length) {
-          then = (head = queue[i++]).d;
+          then = queue[i++];
           // If no callback, just resolve/reject the promise
-          if (!is(func, onResolved = head[onRejected]))
-            then[onRejected ? Resolve : Reject](value);
+          if (!is(func, resolved = then[rejected]))
+            (rejected ? then.r : then.j)(value);
           // Otherwise, resolve/reject the promise with the result of the callback
           else
-            finalize(then, value, onResolved);
+            finalize(then.p, then.r, then.j, value, resolved);
         }
         // Replace this handler with a finalized resolved/rejected handler
-        handler = createFinalizedThen(deferred[Promise], value, onRejected);
+        handler = createFinalizedThen(callback, value, rejected);
       }
     };
     // The queue of pending callbacks; garbage-collected when handler is resolved/rejected
     handler.q = [];
 
-    // Create and return the deferred
-    deferred = {};
-    deferred[Promise] = { then: function (onResolved, onRejected) { return handler(onResolved, onRejected); } };
-    deferred[Resolve] = function (value)  { handler(promiscuous, 1, value); };
-    deferred[Reject]  = function (reason) { handler(promiscuous, 0, reason); };
-    return deferred;
+    // Create and return the promise (reusing the callback variable)
+    callback.call(callback = { then: function (resolved, rejected) { return handler(resolved, rejected); } },
+                  function (value)  { handler(is, 1,  value); },
+                  function (reason) { handler(is, 0, reason); });
+    return callback;
   }
 
   // Creates a resolved or rejected .then function
   function createFinalizedThen(promise, value, success) {
-    return function (onResolved, onRejected) {
-      onResolved = success ? onResolved : onRejected;
-      if (!is(func, onResolved))
+    return function (resolved, rejected) {
+      // If the resolved or rejected parameter is not a function, return the original promise
+      if (!is(func, (resolved = success ? resolved : rejected)))
         return promise;
-      finalize(onRejected = createDeferred(), value, onResolved);
-      return onRejected[Promise];
+      // Otherwise, return a finalized promise, transforming the value with the function
+      return Promise(function (resolve, reject) { finalize(this, resolve, reject, value, resolved); });
     };
   }
 
-  // Finalizes the deferred by resolving/rejecting it with the transformed value
-  function finalize(deferred, value, transform) {
+  // Finalizes the promise by resolving/rejecting it with the transformed value
+  function finalize(promise, resolve, reject, value, transform) {
     setImmediate(function () {
       try {
         // Transform the value through and check whether it's a promise
         value = transform(value);
-        transform = value && (is(obj, value) | is(func, value)) && value[Then];
+        transform = value && (is(obj, value) | is(func, value)) && value.then;
         // Return the result if it's not a promise
         if (!is(func, transform))
-          deferred[Resolve](value);
+          resolve(value);
         // If it's a promise, make sure it's not circular
-        else if (value == deferred[Promise])
-          deferred[Reject](new TypeError());
+        else if (value == promise)
+          reject(new TypeError());
         // Take over the promise's state
         else
-          transform.call(value, deferred[Resolve], deferred[Reject]);
+          transform.call(value, resolve, reject);
       }
-      catch (error) { deferred[Reject](error); }
+      catch (error) { reject(error); }
     });
   }
 
   // Export the main module
-  promiscuous = module.exports = { deferred: createDeferred };
-  promiscuous[Resolve] = function (value, promise) {
-    return (promise = {})[Then] = createFinalizedThen(promise, value,  1), promise;
+  module.exports = Promise;
+  Promise.resolve = function (value, promise) {
+    return (promise = {}).then = createFinalizedThen(promise, value,  1), promise;
   };
-  promiscuous[Reject] = function (reason, promise) {
-    return (promise = {})[Then] = createFinalizedThen(promise, reason, 0), promise;
+  Promise.reject = function (reason, promise) {
+    return (promise = {}).then = createFinalizedThen(promise, reason, 0), promise;
   };
-})('f', 'o', 'then', 'promise', 'resolve', 'reject');
+})('f', 'o');
