@@ -10,7 +10,7 @@
     // 2) handle a resolve or reject call (if the first argument === `is`)
     // Before 2), `handler` holds a queue of callbacks.
     // After 2), `handler` is a finalized .then handler.
-    handler = function pendingHandler(resolved, rejected, value, queue, then) {
+    handler = function pendingHandler(resolved, rejected, value, queue, then, i) {
       queue = pendingHandler.q;
 
       // Case 1) handle a .then(resolved, rejected) call
@@ -43,9 +43,9 @@
         // Replace this handler with a finalized resolved/rejected handler
         handler = createFinalizedThen(callback, value, rejected);
         // Resolve/reject pending callbacks
-        callback = 0;
-        while (callback < queue.length) {
-          then = queue[callback++];
+        i = 0;
+        while (i < queue.length) {
+          then = queue[i++];
           // If no callback, just resolve/reject the promise
           if (!is(func, resolved = then[rejected]))
             (rejected ? then.r : then.j)(value);
