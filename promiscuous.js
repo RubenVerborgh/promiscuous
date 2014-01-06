@@ -88,7 +88,7 @@
           resolve(value);
         // If it's a promise, make sure it's not circular
         else if (value == promise)
-          reject(new TypeError());
+          reject(TypeError());
         // Take over the promise's state
         else
           transform.call(value, resolve, reject);
