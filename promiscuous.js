@@ -99,10 +99,6 @@
 
   // Export the main module
   module.exports = Promise;
-  Promise.resolve = function (value, promise) {
-    return (promise = {}).then = createFinalizedThen(promise, value,  1), promise;
-  };
-  Promise.reject = function (reason, promise) {
-    return (promise = {}).then = createFinalizedThen(promise, reason, 0), promise;
-  };
+  Promise.resolve = function (value) { return Promise(function (resolve)         { resolve(value); }); };
+  Promise.reject = function (reason) { return Promise(function (resolve, reject) { reject(reason); }); };
 })('f', 'o');
