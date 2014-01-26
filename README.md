@@ -55,7 +55,7 @@ brokenPromise.catch(function (error) { console.error(error.message); });
 
 ### Write a function that returns a promise
 ```javascript
-function promiseSomethingInASecond(something) {
+function promiseLater(something) {
   return new Promise(function (resolve, reject) {
     setTimeout(function () {
       if (something)
@@ -65,13 +65,20 @@ function promiseSomethingInASecond(something) {
     }, 1000);
   });
 }
-promiseSomethingInASecond("something").then(
+promiseLater("something").then(
   function (value) { console.log(value); },
   function (error) { console.error(error.message); });
 /* something */
 
-promiseSomethingInASecond(null).then(
+promiseLater(null).then(
   function (value) { console.log(value); },
   function (error) { console.error(error.message); });
 /* nothing */
+```
+
+### Convert an array of promises into a promise for an array
+```javascript
+var promises = [promiseLater(1), promiseLater(2), promiseLater(3)];
+Promise.all(promises).then(function (values) { console.log(values); });
+/* [1, 2, 3] */
 ```
