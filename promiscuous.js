@@ -1,4 +1,4 @@
-/**@license MIT-promiscuous library-©2013 Ruben Verborgh*/
+/**@license MIT-promiscuous-©Ruben Verborgh*/
 (function (func, obj) {
   // Type checking utility function
   function is(type, item) { return (typeof item)[0] == type; }
