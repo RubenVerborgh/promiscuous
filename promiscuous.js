@@ -41,7 +41,14 @@
       // The value is not a promise; handle resolve/reject
       else {
         // Replace this handler with a finalized resolved/rejected handler
-        handler = createFinalizedThen(callback, value, rejected);
+        handler = function (Resolved, Rejected) {
+          // If the Resolved or Rejected parameter is not a function,
+          // return the original promise (now stored in the `callback` variable)
+          if (!is(func, (Resolved = rejected ? Resolved : Rejected)))
+            return callback;
+          // Otherwise, return a finalized promise, transforming the value with the function
+          return Promise(function (resolve, reject) { finalize(this, resolve, reject, value, Resolved); });
+        };
         // Resolve/reject pending callbacks
         i = 0;
         while (i < queue.length) {
@@ -63,17 +70,6 @@
                   function (value)  { handler(is, 1,  value); },
                   function (reason) { handler(is, 0, reason); });
     return callback;
-  }
-
-  // Creates a resolved or rejected .then function
-  function createFinalizedThen(promise, value, success) {
-    return function (resolved, rejected) {
-      // If the resolved or rejected parameter is not a function, return the original promise
-      if (!is(func, (resolved = success ? resolved : rejected)))
-        return promise;
-      // Otherwise, return a finalized promise, transforming the value with the function
-      return Promise(function (resolve, reject) { finalize(this, resolve, reject, value, resolved); });
-    };
   }
 
   // Finalizes the promise by resolving/rejecting it with the transformed value
