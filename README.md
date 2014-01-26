@@ -4,7 +4,7 @@
        alt="Promises/A+ logo" title="Promises/A+ 1.0 compliant" align="right" />
 </a>
 
-promiscuous is the smallest implementation of the [Promises/A+ spec](http://promises-aplus.github.com/promises-spec/).
+promiscuous is a tiny implementation of the [Promises/A+ spec](http://promises-aplus.github.com/promises-spec/).
 
 It is promise library in JavaScript, **small** (< 1kb [minified](https://raw.github.com/RubenVerborgh/promiscuous/dist/promiscuous-node.js) / < 0.6kb gzipped) and **fast**.
 
@@ -34,15 +34,22 @@ $ build/build.js
 ## API
 ### Create a resolved promise
 ```javascript
-var one = Promise.resolve("one");
-one.then(function (value) { console.log(value); });
+var promise = Promise.resolve("one");
+promise.then(function (value) { console.log(value); });
 /* one */
 ```
 
 ### Create a rejected promise
 ```javascript
-var none = Promise.reject(new Error("Could not keep promise."));
-none.then(null, function (error) { console.error(error.message); });
+var brokenPromise = Promise.reject(new Error("Could not keep promise."));
+brokenPromise.then(null, function (error) { console.error(error.message); });
+/* "Could not keep promise." */
+```
+
+You can also use the `catch` method if there is no success callback:
+
+```javascript
+brokenPromise.catch(function (error) { console.error(error.message); });
 /* "Could not keep promise." */
 ```
 
@@ -62,4 +69,9 @@ promiseSomethingInASecond("something").then(
   function (value) { console.log(value); },
   function (error) { console.error(error.message); });
 /* something */
+
+promiseSomethingInASecond(null).then(
+  function (value) { console.log(value); },
+  function (error) { console.error(error.message); });
+/* nothing */
 ```
