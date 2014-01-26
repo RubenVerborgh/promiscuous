@@ -96,6 +96,32 @@
 
   // Export the main module
   module.exports = Promise;
-  Promise.resolve = function (value) { return Promise(function (resolve)         { resolve(value); }); };
+
+  // Creates a resolved promise
+  Promise.resolve = ResolvedPromise;
+  function ResolvedPromise(value) { return Promise(function (resolve) { resolve(value); }); }
+
+  // Creates a rejected promise
   Promise.reject = function (reason) { return Promise(function (resolve, reject) { reject(reason); }); };
+
+  // Transforms an array of promises into a promise for an array
+  Promise.all = function (promises) {
+    return Promise(function (resolve, reject, count, values) {
+      // Array of collected values
+      values = [];
+      // Resolve immediately if there are no promises
+      count = promises.length || resolve(values);
+      // Transform all elements (`map` is shorter than `forEach`)
+      promises.map(function (promise, index) {
+        ResolvedPromise(promise).then(
+          // Store the value and resolve if it was the last
+          function (value) {
+            values[index] = value;
+            --count || resolve(values);
+          },
+          // Reject if one element fails
+          reject);
+      });
+    });
+  };
 })('f', 'o');
