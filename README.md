@@ -82,3 +82,19 @@ var promises = [promiseLater(1), promiseLater(2), promiseLater(3)];
 Promise.all(promises).then(function (values) { console.log(values); });
 /* [1, 2, 3] */
 ```
+
+### Deferred
+Promise(resolve, reject) function should be preferred, but if you need an instance for `promise`, `resolve` and `reject`, you can use `Promise.defer`.
+
+```javascript
+function deferredFunction() {
+  var deferred = Promise.defer();
+  setTimeout(function () {
+    if (something)
+      deferred.resolve(something);
+    else
+      deferred.reject(new Error("nothing"));
+  }, 1000);
+  return deferred.promise;
+}
+```
