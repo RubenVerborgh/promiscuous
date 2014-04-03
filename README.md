@@ -81,6 +81,7 @@ promiseLater(null).then(
 var promises = [promiseLater(1), promiseLater(2), promiseLater(3)];
 Promise.all(promises).then(function (values) { console.log(values); });
 /* [1, 2, 3] */
+```
 
 ### Create queue of functions which return promises
 ```javascript
