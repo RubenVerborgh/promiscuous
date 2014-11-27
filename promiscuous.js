@@ -66,8 +66,8 @@
     handler.q = [];
 
     // Create and return the promise (reusing the callback variable)
-    callback.call(callback = { then:  function (resolved, rejected) { return handler(resolved, rejected); },
-                               catch: function (rejected)           { return handler(0,        rejected); } },
+    callback.call(callback = { then:    function (resolved, rejected) { return handler(resolved, rejected); },
+                               "catch": function (rejected)           { return handler(0,        rejected); } },
                   function (value)  { handler(is, 1,  value); },
                   function (reason) { handler(is, 0, reason); });
     return callback;
