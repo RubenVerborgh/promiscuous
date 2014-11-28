@@ -82,3 +82,41 @@ var promises = [promiseLater(1), promiseLater(2), promiseLater(3)];
 Promise.all(promises).then(function (values) { console.log(values); });
 /* [1, 2, 3] */
 ```
+
+### Create queue of functions which return promises
+```javascript
+/**
+* if ++value is less than 4, return promise has been resolved with ++value
+* if ++value equals 4, return promise has been rejected with ++value
+* @param {Number} value
+*/
+function getInc(value) {
+  return new Promise(function(resolve, reject) {
+    setTimeout(function() {
+      console.log(value);
+      if (++value < 4) {
+        resolve(value);
+      } else {
+        reject(value);
+      }
+    }, 100);
+  });
+}
+
+var firstNumber = 1;
+var resultPromise = Promise.queue([getInc, getInc, getInc, getInc, getInc], firstNumber);
+resultPromise.then(function(value) {
+  console.log('promise has been resolved with %d value', value);
+  }, function(value) {
+    console.log('promise has been rejected with "%d" value', value);
+  });
+/* 1 2 3 'promise has been rejected with "4" value" */
+
+var nextResultPromise = Promise.queue([getInc, getInc], firstNumber);
+nextResultPromise.then(function(value) {
+  console.log('promise has been resolved with %d value', value);
+  }, function(value) {
+    console.log('promise has been rejected with "%d" value', value);
+  });
+/* 1 2 'promise has been resolved with "3" value" */
+```

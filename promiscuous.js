@@ -124,4 +124,34 @@
       });
     });
   };
+
+  /**
+   * Create a pipe for promises.
+   * When first promise has resolved, second function will be called.
+   * When second promise has resolved, third function will be called.
+   * Etc.
+   * If some promise has rejected, next function won't be called.
+   * @param {[Function]} functions array of functions, which return a promise
+   * @param {Object} data param for passing to first function
+   */
+  Promise.queue = function(functions, data) {
+    function _addFunctionToQueue(resolve, reject, args) {
+      args = Array.prototype.slice.call(arguments, 2);
+      var func = functions.shift();
+      if (func) {
+        var promise = func.apply(null, args);
+        promise.then(function() {
+          var args = Array.prototype.slice.call(arguments);
+          args = [resolve, reject].concat(args);
+
+          _addFunctionToQueue.apply(null, args);
+        }, reject);
+      } else {
+        resolve.apply(null, args);
+      }
+    }
+    return new Promise(function(resolve, reject) {
+      _addFunctionToQueue(resolve,reject, data);
+    });
+  }
 })('f', 'o');
