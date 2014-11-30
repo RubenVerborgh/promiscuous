@@ -106,22 +106,36 @@
 
   // Transforms an array of promises into a promise for an array
   Promise.all = function (promises) {
+    // support for promises array
+    if (promises.then) return promises.then(function (value) { return Promise.all(value); });
     return Promise(function (resolve, reject, count, values) {
       // Array of collected values
       values = [];
       // Resolve immediately if there are no promises
       count = promises.length || resolve(values);
+      // If not iterable, resolve as-is
+      if (!promises.map) return resolve(promises);
       // Transform all elements (`map` is shorter than `forEach`)
       promises.map(function (promise, index) {
         ResolvedPromise(promise).then(
           // Store the value and resolve if it was the last
           function (value) {
             values[index] = value;
-            --count || resolve(values);
+            index === (count - 1) && resolve(values);
           },
           // Reject if one element fails
           reject);
       });
     });
+  };
+
+  // Creates a deferred object wrapping a promise
+  Promise.defer = function () {
+    var deferred = {};
+    deferred.promise = new Promise(function (resolve, reject) {
+      deferred.resolve = resolve;
+      deferred.reject = reject;
+    });
+    return deferred;
   };
 })('f', 'o');
