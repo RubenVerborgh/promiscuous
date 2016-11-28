@@ -124,4 +124,16 @@
       });
     });
   };
+  Promise.race = function (promises) {
+    return Promise(function (resolve, reject) {
+      // Transform all elements (`map` is shorter than `forEach`)
+      promises.map(function (promise, index) {
+        ResolvedPromise(promise).then(
+          // Resolve if one of them was resolved
+          resolve,
+          // Reject if one of them was rejected
+          reject);
+      });
+    });
+  };
 })('f', 'o');
