@@ -124,4 +124,14 @@
       });
     });
   };
+
+  // Returns a promise that resolves or rejects as soon as one promise in the array does
+  Promise.race = function (promises) {
+    return Promise(function (resolve, reject) {
+      // Register to all promises in the array
+      promises.map(function (promise) {
+        ResolvedPromise(promise).then(resolve, reject);
+      });
+    });
+  };
 })('f', 'o');
