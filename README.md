@@ -23,7 +23,7 @@ var Promise = require('promiscuous');
 ### Browsers
 Include [promiscuous](https://raw.github.com/RubenVerborgh/promiscuous/dist/promiscuous-browser.js) in your HTML file.
 ```html
-<script src="promicuous-browser.js"></script>
+<script src="promiscuous-browser.js"></script>
 ```
 
 This version (and a minified one) can be built with:
