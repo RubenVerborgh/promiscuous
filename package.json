@@ -1,8 +1,9 @@
 {
   "name": "promiscuous",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "description": "A minimal and fast promise implementation",
   "author": "Ruben Verborgh <ruben.verborgh@gmail.com>",
+  "contributors": ["Madison Dickson <madison@mix3dstudios.com> (http://github.com/mix3d/)"],
   "license": "MIT",
   "repository": {
     "type": "git",

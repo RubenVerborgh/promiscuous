@@ -1,10 +1,34 @@
-/**@license MIT-promiscuous-©Ruben Verborgh*/
-(function (func, obj) {
+/**@license MIT-promiscuous-©Ruben Verborgh 
+ * modified for UMD by Madison Dickson @mix3dstudios
+ */
+(function (root, factory) {
+
+    if (typeof define === 'function' && define.amd) {
+        //shim for existing promise browser support
+        if(root.Promise) define([], function(){return root.Promise;});
+        // AMD. Register as an anonymous module, but also on root
+        else define([], function(){
+          return (root.Promise = factory('f','o'));
+        });
+    } else if (typeof module === 'object' && module.exports) {
+        // Node. Does not work with strict CommonJS, but
+        // only CommonJS-like environments that support module.exports,
+        // like Node.
+        module.exports = root.Promise ? root.Promise : factory('f','o');
+    } else {
+        // Browser globals (root is window)
+        if(!root.Promise) root.Promise = factory('f','o');
+
+  }
+}(this, function (func,obj) {
+
+  var runNext = (typeof setImmediate === 'function') ? setImmediate : setTimeout; 
+
   // Type checking utility function
   function is(type, item) { return (typeof item)[0] == type; }
 
   // Creates a promise, calling callback(resolve, reject), ignoring other parameters.
-  function Promise(callback, handler) {
+  var Promise = function(callback, handler) {
     // The `handler` variable points to the function that will
     // 1) handle a .then(resolved, rejected) call
     // 2) handle a resolve or reject call (if the first argument === `is`)
@@ -75,7 +99,7 @@
 
   // Finalizes the promise by resolving/rejecting it with the transformed value
   function finalize(promise, resolve, reject, value, transform) {
-    setImmediate(function () {
+    runNext(function () {
       try {
         // Transform the value through and check whether it's a promise
         value = transform(value);
@@ -93,9 +117,6 @@
       catch (error) { reject(error); }
     });
   }
-
-  // Export the main module
-  module.exports = Promise;
 
   // Creates a resolved promise
   Promise.resolve = ResolvedPromise;
@@ -134,4 +155,7 @@
       });
     });
   };
-})('f', 'o');
+
+  return Promise;
+
+}));
