@@ -1,5 +1,5 @@
 /**@license MIT-promiscuous-©Ruben Verborgh 
- * modified by Madison Dickson @mix3dstudios
+ * modified for UMD by Madison Dickson @mix3dstudios
  */
 (function (root, factory) {
 
@@ -8,24 +8,23 @@
         if(root.Promise) define([], function(){return root.Promise;});
         // AMD. Register as an anonymous module, but also on root
         else define([], function(){
-          return (root.Promise = factory());
+          return (root.Promise = factory('f','o'));
         });
     } else if (typeof module === 'object' && module.exports) {
         // Node. Does not work with strict CommonJS, but
         // only CommonJS-like environments that support module.exports,
         // like Node.
-        module.exports = root.Promise ? root.Promise : factory();
+        module.exports = root.Promise ? root.Promise : factory('f','o');
     } else {
         // Browser globals (root is window)
-        if(!root.Promise) root.Promise = factory();
+        if(!root.Promise) root.Promise = factory('f','o');
 
   }
-}(this, function () {
+}(this, function (func,obj) {
 
   var runNext = (typeof setImmediate === 'function') ? setImmediate : setTimeout; 
 
   // Type checking utility function
-  var obj = 'o', func = 'f';
   function is(type, item) { return (typeof item)[0] == type; }
 
   // Creates a promise, calling callback(resolve, reject), ignoring other parameters.
