@@ -10,7 +10,7 @@
     // 2) handle a resolve or reject call (if the first argument === `is`)
     // Before 2), `handler` holds a queue of callbacks.
     // After 2), `handler` is a finalized .then handler.
-    handler = function pendingHandler(resolved, rejected, value, queue, then, i) {
+    function pendingHandler(resolved, rejected, value, queue, then, i) {
       queue = pendingHandler.q;
 
       // Case 1) handle a .then(resolved, rejected) call
@@ -61,7 +61,9 @@
             finalize(then.p, then.r, then.j, value, resolved);
         }
       }
-    };
+    }
+
+    handler = pendingHandler;
     // The queue of pending callbacks; garbage-collected when handler is resolved/rejected
     handler.q = [];
 
