@@ -32,10 +32,7 @@
       }
       // If the value is a promise, take over its state
       if (is(func, then)) {
-        function valueHandler(resolved) {
-          return function (value) { then && (then = 0, pendingHandler(is, resolved, value)); };
-        }
-        try { then.call(value, valueHandler(1), rejected = valueHandler(0)); }
+        try { then.call(value, transferState(1), rejected = transferState(0)); }
         catch (reason) { rejected(reason); }
       }
       // The value is not a promise; handle resolve/reject
@@ -60,6 +57,10 @@
           else
             finalize(then.p, then.r, then.j, value, resolved);
         }
+      }
+      // Returns a function that transfers the state of the promise
+      function transferState(resolved) {
+        return function (value) { then && (then = 0, pendingHandler(is, resolved, value)); };
       }
     };
     // The queue of pending callbacks; garbage-collected when handler is resolved/rejected
