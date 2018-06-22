@@ -9,6 +9,7 @@ var browserFull = full.replace("module.exports", "window.Promise")
                       .replace("setImmediate", "setTimeout");
 var browser = copyright + UglifyJS.minify(browserFull, { fromString: true }).code
                                   .replace("window.Promise", "Promise");
+var browserShimFull = full.replace("setImmediate", "setTimeout");
 
 var path = "dist/";
 if(!fs.existsSync(path))
@@ -19,3 +20,4 @@ fs.writeFileSync(path + "promiscuous-browser.js", browser);
 fs.writeFileSync(path + "promiscuous-browser-full.js", browserFull);
 fs.writeFileSync(path + "promiscuous-shim.js",
                  browser.replace("!", "(typeof Promise)[0]!='u'||"));
+fs.writeFileSync(path + "promiscuous-browser-shim-full.js", browserShimFull);
