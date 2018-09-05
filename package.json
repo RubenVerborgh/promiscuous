@@ -13,9 +13,10 @@
   },
   "main": "promiscuous.js",
   "scripts": {
-    "test": "promises-aplus-tests test/adapter"
+    "test": "promises-aplus-tests test/adapter && node test/test-lolex.js"
   },
   "devDependencies": {
+    "lolex": "^2.7.3",
     "promises-aplus-tests": "2.0.x",
     "uglify-js": "2.2.x"
   }

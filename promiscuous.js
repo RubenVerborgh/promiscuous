@@ -1,5 +1,7 @@
 /**@license MIT-promiscuous-©Ruben Verborgh*/
 (function (func, obj) {
+  // cache setImmediate to avoid overriding
+  var setImmediateCached = setImmediate;
   // Type checking utility function
   function is(type, item) { return (typeof item)[0] == type; }
 
@@ -76,7 +78,7 @@
 
   // Finalizes the promise by resolving/rejecting it with the transformed value
   function finalize(promise, resolve, reject, value, transform) {
-    setImmediate(function () {
+    setImmediateCached(function () {
       try {
         // Transform the value through and check whether it's a promise
         value = transform(value);
