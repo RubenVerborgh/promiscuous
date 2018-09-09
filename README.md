@@ -1,3 +1,9 @@
+**Promiscuous was a 2013 experiment to make a tiny library with full Promise compatibility.**
+JavaScript has drastically changed since: we now have Promises (nearly) everywhere, and transpilation with full-fledged shims for cases where we don't.
+
+So please, **do not use this library anymore**. Look into Babel and webpack when developing for pre-ES6 targets.
+
+
 # promiscuous
 <a href="http://promises-aplus.github.com/promises-spec">
   <img src="http://promises-aplus.github.com/promises-spec/assets/logo-small.png"
